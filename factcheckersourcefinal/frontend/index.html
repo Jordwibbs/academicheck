@@ -1,0 +1,744 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcademiCheck</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        header h1 { font-size: 1.6rem; font-weight: 700; }
+        header p { font-size: 0.85rem; color: #a0aec0; margin-top: 2px; }
+
+        .badge {
+            background: #3b82f6;
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .input-card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 28px;
+        }
+
+        .input-card > label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            background: #f0f2f5;
+            color: #4a5568;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .input-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+        }
+
+        .char-count { font-size: 0.8rem; color: #718096; }
+
+        button {
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover { background: #2d2d4e; }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #a0aec0; cursor: not-allowed; }
+
+        .url-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .url-row input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .url-row input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .fetched-preview {
+            margin-top: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .fetched-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: #1a1a2e;
+        }
+
+        .fetched-text {
+            font-size: 0.82rem;
+            color: #718096;
+            line-height: 1.6;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 28px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading p { color: #718096; font-size: 0.9rem; }
+        .loading small { color: #a0aec0; font-size: 0.8rem; }
+
+        .summary-bar {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 20px 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .summary-bar h2 { font-size: 1rem; font-weight: 700; flex: 1; }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .stat-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-supported { background: #10b981; }
+        .dot-contradicted { background: #ef4444; }
+        .dot-unverifiable { background: #f59e0b; }
+
+        .results { display: none; }
+
+        .claim-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            border-left: 5px solid #e2e8f0;
+        }
+
+        .claim-card.supported { border-left-color: #10b981; }
+        .claim-card.contradicted { border-left-color: #ef4444; }
+        .claim-card.unverifiable { border-left-color: #f59e0b; }
+
+        .claim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .claim-text {
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .verdict-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .verdict-badge.supported { background: #d1fae5; color: #065f46; }
+        .verdict-badge.contradicted { background: #fee2e2; color: #991b1b; }
+        .verdict-badge.unverifiable { background: #fef3c7; color: #92400e; }
+
+        .explanation {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 16px;
+        }
+
+        .confidence-bar { margin-bottom: 16px; }
+
+        .confidence-label {
+            font-size: 0.78rem;
+            color: #718096;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .bar-track {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .bar-fill.supported { background: #10b981; }
+        .bar-fill.contradicted { background: #ef4444; }
+        .bar-fill.unverifiable { background: #f59e0b; }
+
+        .sources-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .source-item {
+            background: #f7fafc;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            font-size: 0.82rem;
+        }
+
+        .source-title { font-weight: 600; color: #2d3748; margin-bottom: 2px; }
+        .source-meta { color: #718096; }
+
+        .source-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 0.78rem;
+        }
+
+        .source-link:hover { text-decoration: underline; }
+
+        .similarity-pill {
+            display: inline-block;
+            background: #ebf4ff;
+            color: #3b82f6;
+            font-size: 0.72rem;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .error-box {
+            display: none;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 14px 18px;
+            color: #991b1b;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #a0aec0;
+            font-size: 0.8rem;
+        }
+
+            .model-selector {
+            margin-bottom: 16px;
+        }
+
+        .model-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .model-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .model-option {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .model-option:hover {
+            border-color: #3b82f6;
+        }
+
+        .model-option.active {
+            border-color: #1a1a2e;
+            background: #f8faff;
+        }
+
+        .model-option.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .model-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+        }
+
+        .model-desc {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>AcademiCheck</h1>
+        <p>Fact-checking news articles against peer-reviewed academic literature</p>
+    </div>
+    <span class="badge">BETA</span>
+    <nav style="margin-left: auto;">
+        <a href="/history-page" style="
+            color: #a0aec0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid #3a3a5e;
+            transition: all 0.2s;
+        " onmouseover="this.style.color='white';this.style.borderColor='white'"
+           onmouseout="this.style.color='#a0aec0';this.style.borderColor='#3a3a5e'">
+            History
+        </a>
+    </nav>
+</header>
+
+<main>
+    <div class="input-card">
+        <label>Fact-check an article</label>
+
+        <div class="tab-row">
+            <button class="tab active" onclick="switchTab('paste')">Paste Text</button>
+            <button class="tab" onclick="switchTab('url')">From URL</button>
+        </div>
+        
+ <div class="model-options">
+    <div class="model-option active" onclick="selectModel('mistral', this)">
+        <div class="model-name">Mistral 7B</div>
+        <div class="model-desc">General purpose · More thorough</div>
+    </div>
+    <div class="model-option" onclick="selectModel('academicheck', this)">
+        <div class="model-name">AcademiCheck</div>
+        <div class="model-desc">Fine-tuned SmolLM2 1.7B · Fast</div>
+    </div>
+</div>
+        <div id="pasteTab">
+            <textarea id="article" placeholder="Paste the full text of a news article here..."></textarea>
+            <div class="input-footer">
+                <span class="char-count" id="charCount">0 characters</span>
+                <button id="checkBtn" onclick="checkArticle()">Check Article</button>
+            </div>
+        </div>
+
+        <div id="urlTab" style="display:none">
+            <div class="url-row">
+                <input type="url" id="urlInput" placeholder="https://www.bbc.co.uk/news/article..."/>
+                <button id="fetchBtn" onclick="fetchArticle()">Fetch</button>
+            </div>
+            <div id="fetchedPreview" class="fetched-preview" style="display:none">
+                <div class="fetched-title" id="fetchedTitle"></div>
+                <div class="fetched-text" id="fetchedText"></div>
+                <div class="input-footer" style="margin-top:12px">
+                    <span></span>
+                    <button id="checkUrlBtn" onclick="checkFetched()">Check Article</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analysing article and verifying claims...</p>
+        <small>This may take 1–3 minutes depending on the number of claims found</small>
+    </div>
+
+    <div class="summary-bar" id="summaryBar">
+        <h2 id="summaryTitle">Fact-Check Complete</h2>
+        <div class="stat">
+            <div class="stat-dot dot-supported"></div>
+            <span id="statSupported">0 Supported</span>
+        </div>
+        <div class="stat">
+            <div class="stat-dot dot-contradicted"></div>
+            <span id="statContradicted">0 Contradicted</span>
+        </div>
+        <div class="stat">
+            <div class="stat-dot dot-unverifiable"></div>
+            <span id="statUnverifiable">0 Unverifiable</span>
+        </div>
+    </div>
+
+    <div class="results" id="results"></div>
+</main>
+
+<footer>
+    AcademiCheck &mdash; Final Year Project &mdash; Verdicts are computational assessments only and should not be taken as legal or journalistic determinations.
+</footer>
+
+<script>
+    let fetchedArticleText = '';
+
+    const textarea = document.getElementById('article');
+    const charCount = document.getElementById('charCount');
+    textarea.addEventListener('input', () => {
+        charCount.textContent = `${textarea.value.length} characters`;
+    });
+
+    function switchTab(tab) {
+        document.getElementById('pasteTab').style.display = tab === 'paste' ? 'block' : 'none';
+        document.getElementById('urlTab').style.display = tab === 'url' ? 'block' : 'none';
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            t.classList.toggle('active', (i === 0) === (tab === 'paste'));
+        });
+    }
+
+    function verdictClass(verdict) { return verdict.toLowerCase(); }
+
+    function verdictEmoji(verdict) {
+        return { SUPPORTED: '✅', CONTRADICTED: '❌', UNVERIFIABLE: '⚠️' }[verdict] || '❓';
+    }
+
+    function renderSource(source, index) {
+        const sim = source.similarity
+            ? `<span class="similarity-pill">${(source.similarity * 100).toFixed(0)}% match</span>` : '';
+        const link = source.doi
+            ? `<a class="source-link" href="https://doi.org/${source.doi}" target="_blank">View paper →</a>`
+            : source.url
+            ? `<a class="source-link" href="${source.url}" target="_blank">View paper →</a>`
+            : '';
+        return `
+            <div class="source-item">
+                <div class="source-title">[${index + 1}] ${source.title || 'Unknown'} ${sim}</div>
+                <div class="source-meta">
+                    ${source.authors || 'Unknown authors'} ${source.year ? `(${source.year})` : ''}
+                    ${link ? ' &mdash; ' + link : ''}
+                </div>
+            </div>`;
+    }
+
+    function renderClaim(result, index) {
+        const cls = verdictClass(result.verdict);
+        const emoji = verdictEmoji(result.verdict);
+        const confidence = Math.round(result.confidence * 100);
+        const sourcesHtml = result.sources.slice(0, 3).map((s, i) => renderSource(s, i)).join('');
+        return `
+            <div class="claim-card ${cls}">
+                <div class="claim-header">
+                    <div class="claim-text">${index + 1}. ${result.claim}</div>
+                    <div class="verdict-badge ${cls}">${emoji} ${result.verdict}</div>
+                </div>
+                <div class="explanation">${result.explanation}</div>
+                <div class="confidence-bar">
+                    <div class="confidence-label">Confidence: ${confidence}%</div>
+                    <div class="bar-track">
+                        <div class="bar-fill ${cls}" style="width: ${confidence}%"></div>
+                    </div>
+                </div>
+                <div class="sources-title">Academic Sources</div>
+                ${sourcesHtml}
+            </div>`;
+    }
+
+    async function fetchArticle() {
+        const url = document.getElementById('urlInput').value.trim();
+        if (!url) return;
+
+        const fetchBtn = document.getElementById('fetchBtn');
+        fetchBtn.disabled = true;
+        fetchBtn.textContent = 'Fetching...';
+
+        const errorBox = document.getElementById('errorBox');
+        errorBox.style.display = 'none';
+
+        try {
+            const response = await fetch('/fetch-article', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || 'Could not fetch article');
+            }
+
+            const data = await response.json();
+            fetchedArticleText = data.text;
+
+            document.getElementById('fetchedTitle').textContent = data.title;
+            document.getElementById('fetchedText').textContent = data.text.slice(0, 500) + '...';
+            document.getElementById('fetchedPreview').style.display = 'block';
+
+        } catch (err) {
+            errorBox.textContent = `Error: ${err.message}`;
+            errorBox.style.display = 'block';
+        } finally {
+            fetchBtn.disabled = false;
+            fetchBtn.textContent = 'Fetch';
+        }
+    }
+
+    async function checkFetched() {
+        if (!fetchedArticleText) return;
+        document.getElementById('article').value = fetchedArticleText;
+        await checkArticle();
+    }
+
+    async function checkArticle() {
+        const article = fetchedArticleText || textarea.value.trim();
+        if (!article) return;
+
+        const btn = document.getElementById('checkBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const summaryBar = document.getElementById('summaryBar');
+        const errorBox = document.getElementById('errorBox');
+
+        if (btn) btn.disabled = true;
+        loading.style.display = 'block';
+        results.innerHTML = '';
+        results.style.display = 'block';
+        summaryBar.style.display = 'none';
+        errorBox.style.display = 'none';
+
+        let totalClaims = 0;
+        let supported = 0, contradicted = 0, unverifiable = 0;
+        let claimIndex = 0;
+
+        try {
+            const response = await fetch('/check-stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ article, model: selectedModel })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+                    const data = JSON.parse(line.slice(6));
+
+                    if (data.type === 'claims_found') {
+                        totalClaims = data.count;
+                        loading.querySelector('p').textContent =
+                            `Found ${data.count} claim${data.count !== 1 ? 's' : ''} — verifying against academic literature...`;
+                    }
+
+                    if (data.type === 'claim_result') {
+                        loading.querySelector('p').textContent =
+                            `Verifying claim ${data.index + 1} of ${data.total}...`;
+
+                        const cls = data.verdict.toLowerCase();
+                        const emoji = { SUPPORTED: '✅', CONTRADICTED: '❌', UNVERIFIABLE: '⚠️' }[data.verdict] || '❓';
+                        const confidence = Math.round(data.confidence * 100);
+                        const sourcesHtml = (data.sources || []).slice(0, 3).map((s, i) => renderSource(s, i)).join('');
+
+                        const card = document.createElement('div');
+                        card.className = `claim-card ${cls}`;
+                        card.style.opacity = '0';
+                        card.style.transition = 'opacity 0.4s ease';
+                        card.innerHTML = `
+                            <div class="claim-header">
+                                <div class="claim-text">${claimIndex + 1}. ${data.claim}</div>
+                                <div class="verdict-badge ${cls}">${emoji} ${data.verdict}</div>
+                            </div>
+                            <div class="explanation">${data.explanation}</div>
+                            <div class="confidence-bar">
+                                <div class="confidence-label">Confidence: ${confidence}%</div>
+                                <div class="bar-track">
+                                    <div class="bar-fill ${cls}" style="width: ${confidence}%"></div>
+                                </div>
+                            </div>
+                            <div class="sources-title">Academic Sources</div>
+                            ${sourcesHtml}
+                        `;
+                        results.appendChild(card);
+                        setTimeout(() => card.style.opacity = '1', 50);
+                        claimIndex++;
+
+                        if (data.verdict === 'SUPPORTED') supported++;
+                        else if (data.verdict === 'CONTRADICTED') contradicted++;
+                        else unverifiable++;
+
+                        document.getElementById('summaryTitle').textContent =
+                            `${claimIndex} of ${totalClaims} claims analysed`;
+                        document.getElementById('statSupported').textContent = `${supported} Supported`;
+                        document.getElementById('statContradicted').textContent = `${contradicted} Contradicted`;
+                        document.getElementById('statUnverifiable').textContent = `${unverifiable} Unverifiable`;
+                        summaryBar.style.display = 'flex';
+                    }
+
+                    if (data.type === 'complete') {
+                        document.getElementById('summaryTitle').textContent =
+                            `${totalClaims} claim${totalClaims !== 1 ? 's' : ''} analysed`;
+                    }
+                }
+            }
+
+        } catch (err) {
+            errorBox.textContent = `Error: ${err.message}`;
+            errorBox.style.display = 'block';
+        } finally {
+            if (btn) btn.disabled = false;
+            loading.style.display = 'none';
+            fetchedArticleText = '';
+        }
+    }
+    
+       let selectedModel = 'mistral';
+
+    function selectModel(model, el) {
+        if (el.classList.contains('disabled')) return;
+        selectedModel = model;
+        document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+</script>
+
+</body>
+</html>
